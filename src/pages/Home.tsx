@@ -72,7 +72,7 @@ const Home = () => {
         </p>
 
         <div className="flex items-center justify-center gap-4 pt-4">
-          <Link to="/dashboard" className="inline-flex rounded-2xl bg-gradient-to-r from-primary-500 to-secondary-500 p-[1px]">
+          <Link to="/dr_console" className="inline-flex rounded-2xl bg-gradient-to-r from-primary-500 to-secondary-500 p-[1px]">
             <button className="px-8 py-4 rounded-2xl font-medium text-white bg-neutral-900/50 backdrop-blur-xl hover:bg-transparent transition-all duration-300">
               Start Detection
             </button>

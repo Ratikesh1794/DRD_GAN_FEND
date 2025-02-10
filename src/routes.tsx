@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Detection from './pages/Detection'
 import Analytics from './pages/Analytics'
 import Reports from './pages/Reports'
+import DrConsole from './pages/DrConsole'
 
 export const router = createBrowserRouter([
   {
@@ -23,11 +24,15 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: '/dashboard',
+    path: '/dr_console',
     element: <DashboardLayout />,
     children: [
       {
         index: true,
+        element: <DrConsole />,
+      },
+      {
+        path: 'dashboard',
         element: <Dashboard />,
       },
       {
@@ -37,7 +42,7 @@ export const router = createBrowserRouter([
       {
         path: 'analytics',
         element: <Analytics />,
-      },
+      }
     ],
   },
 ]) 
