@@ -6,6 +6,20 @@ interface ImageUploadFormProps {
 }
 
 const ImageUploadForm = ({ preview, onImageChange, onSubmit, onBack }: ImageUploadFormProps) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const fileInput = document.getElementById('image-upload') as HTMLInputElement
+    const file = fileInput?.files?.[0]
+    
+    if (!file) {
+      alert('Please select an image to upload')
+      return
+    }
+
+    onSubmit(e)
+  }
+
   return (
     <div className="bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800/50 backdrop-blur-xl">
       <h2 className="text-2xl font-semibold text-neutral-200 mb-8 text-left">Retinal Image Upload</h2>
@@ -49,7 +63,7 @@ const ImageUploadForm = ({ preview, onImageChange, onSubmit, onBack }: ImageUplo
           </button>
           <button
             type="submit"
-            onClick={onSubmit}
+            onClick={handleSubmit}
             className="w-2/3 px-6 py-4 rounded-xl bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-medium hover:from-primary-600 hover:to-secondary-600 transition-all duration-300 focus:ring-2 focus:ring-primary-500/50"
           >
             Start Detection

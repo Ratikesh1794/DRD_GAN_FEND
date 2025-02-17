@@ -1,14 +1,23 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PatientForm, initialPatientForm, requiredFields } from '../types/patient'
 import PatientInformationForm from '../components/PatientInformationForm'
 import ImageUploadForm from '../components/ImageUploadForm'
-import { apiRequest } from '../services/api'
+import Popup from '../components/Popup'
+import { apiRequest, uploadImage } from '../services/api'
 
 const DrConsole = () => {
+  const navigate = useNavigate()
   const [step, setStep] = useState<1 | 2>(1)
   const [form, setForm] = useState<PatientForm>(initialPatientForm)
   const [preview, setPreview] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [popup, setPopup] = useState<{ isOpen: boolean; type: 'success' | 'error'; message: string }>({
+    isOpen: false,
+    type: 'success',
+    message: ''
+  })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -41,10 +50,15 @@ const DrConsole = () => {
       .map(([ , label]) => label)
 
     if (missingFields.length > 0) {
-      alert(`Please fill in the following required fields:\n${missingFields.join('\n')}`)
+      setPopup({
+        isOpen: true,
+        type: 'error',
+        message: 'Please complete the following required fields before proceeding:\n' + missingFields.join('\n')
+      })
       return
     }
 
+    setIsLoading(true)
     try {
       const payload = {
         patient_name: form.patient_name,
@@ -64,11 +78,21 @@ const DrConsole = () => {
       })
       console.log('Patient information saved:', data)
       
-      // Move to next step
+      setPopup({
+        isOpen: true,
+        type: 'success',
+        message: 'Patient information has been successfully saved. You can now proceed with the retinal image upload.'
+      })
       setStep(2)
     } catch (error) {
       console.error('Error saving patient information:', error)
-      alert('Failed to save patient information. Please try again.')
+      setPopup({
+        isOpen: true,
+        type: 'error',
+        message: 'Unable to save patient information. Please check your entries and try again.'
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -76,36 +100,36 @@ const DrConsole = () => {
     e.preventDefault()
     
     if (!form.image) {
-      alert('Please upload an image')
+      setPopup({
+        isOpen: true,
+        type: 'error',
+        message: 'Please select a retinal image to upload before proceeding with the detection.'
+      })
       return
     }
 
+    setIsLoading(true)
     try {
-      // Prepare the request payload
-      const payload = {
-        patient_name: form.patient_name,
-        patient_id: form.patient_id,
-        date_of_birth: form.date_of_birth,
-        gender: form.gender.toLowerCase(),
-        vision_problems: form.vision_problems,
-        visual_acuity_right: parseFloat(form.visual_acuity_right),
-        visual_acuity_left: parseFloat(form.visual_acuity_left),
-        blood_sugar_fasting: form.blood_sugar_fasting ? parseFloat(form.blood_sugar_fasting) : null,
-        blood_pressure: form.blood_pressure || null
-      }
-
-      const data = await apiRequest('/create-patient', {
-        method: 'POST',
-        body: payload
-      })
-      console.log('Patient information saved:', data)
-      alert('Patient information saved successfully!')
-
-      // TODO: Handle image upload separately or implement multipart form data
+      await uploadImage(form.patient_id, form.image)
       
+      setPopup({
+        isOpen: true,
+        type: 'success',
+        message: 'Retinal image uploaded successfully! You will be redirected to the detection report shortly.'
+      })
+      
+      setTimeout(() => {
+        navigate('/reports')
+      }, 2000)
     } catch (error) {
-      console.error('Error saving patient information:', error)
-      alert('Failed to save patient information. Please try again.')
+      console.error('Error uploading image:', error)
+      setPopup({
+        isOpen: true,
+        type: 'error',
+        message: 'Failed to upload the retinal image. Please ensure the image is in the correct format and try again.'
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -116,8 +140,17 @@ const DrConsole = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-8"
+        className="space-y-8 relative"
       >
+        {isLoading && (
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+            <div className="space-y-4 text-center">
+              <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-neutral-300">Processing...</p>
+            </div>
+          </div>
+        )}
+
         {step === 1 ? (
           <PatientInformationForm
             form={form}
@@ -133,6 +166,13 @@ const DrConsole = () => {
           />
         )}
       </motion.div>
+
+      <Popup
+        isOpen={popup.isOpen}
+        type={popup.type}
+        message={popup.message}
+        onClose={() => setPopup(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   )
 }
