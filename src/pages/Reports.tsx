@@ -82,7 +82,7 @@ const Reports = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 px-4">
+    <div className="max-w-5xl mx-auto space-y-8 px-4 pt-10 pb-20">
       <h1 className="text-4xl font-bold text-neutral-200 text-left">Detection Reports</h1>
       
       <motion.div
