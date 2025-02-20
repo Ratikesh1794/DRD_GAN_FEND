@@ -110,23 +110,29 @@ const DrConsole = () => {
 
     setIsLoading(true)
     try {
+      // First API call: Upload image
       await uploadImage(form.patient_id, form.image)
+      
+      // Second API call: Generate report
+      await apiRequest(`/generate-report/${form.patient_id}`, {
+        method: 'POST'
+      })
       
       setPopup({
         isOpen: true,
         type: 'success',
-        message: 'Retinal image uploaded successfully! You will be redirected to the detection report shortly.'
+        message: 'Image uploaded and report generated successfully! You will be redirected to the detection report shortly.'
       })
       
       setTimeout(() => {
         navigate('/reports')
       }, 2000)
     } catch (error) {
-      console.error('Error uploading image:', error)
+      console.error('Error in process:', error)
       setPopup({
         isOpen: true,
         type: 'error',
-        message: 'Failed to upload the retinal image. Please ensure the image is in the correct format and try again.'
+        message: 'Failed to complete the process. Please try again.'
       })
     } finally {
       setIsLoading(false)
